@@ -1,7 +1,7 @@
 # naptick-assignment
 
 # 🤖 Multi-Collection RAG System with Conversational AI
-The final website is deployed here :[website](https://sohanhegde1.github.io/naptick-assignment/)
+The final website is deployed here : [website](https://sohanhegde1.github.io/naptick-assignment/)
 ## 🎯 Overview
 
 This project demonstrates an advanced **Retrieval-Augmented Generation (RAG) system** that seamlessly integrates multiple data collections with conversational AI. The system provides personalized health coaching by analyzing user data across health metrics, location patterns, research papers, and conversation history.
