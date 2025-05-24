@@ -136,7 +136,5 @@ graph TD
 | Memory Usage | 10MB | <5MB |
 | Cache Hit Rate | 85% | >90% |
 
-## 🤝 Contributing
-
 
 
