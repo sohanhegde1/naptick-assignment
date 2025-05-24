@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Intelligence System</title>
+<style>
+/* Reset and Base Styles */
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: #000;
+color: #fff;
+overflow-x: hidden;
+}
+
+/* Animated Background */
+.bg-animation {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: -1;
+background: linear-gradient(45deg, #000000, #0a0a0a, #111111);
+background-size: 400% 400%;
+animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+0% { background-position: 0% 50%; }
+50% { background-position: 100% 50%; }
+100% { background-position: 0% 50%; }
+}
+
+/* Floating Particles */
+.particles {
+position: fixed;
+width: 100%;
+height: 100%;
+z-index: -1;
+}
+
+.particle {
+position: absolute;
+width: 2px;
+height: 2px;
+background: #333;
+animation: float 20s infinite linear;
+opacity: 0.8;
+}
+
+@keyframes float {
+0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+10% { opacity: 1; }
+90% { opacity: 1; }
+100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+}
+
+/* Header */
+header {
+position: fixed;
+top: 0;
+width: 100%;
+z-index: 1000;
+background: rgba(0, 0, 0, 0.95);
+backdrop-filter: blur(10px);
+border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+padding: 1rem 2rem;
+}
+
+.nav-container {
+display: flex;
+justify-content: space-between;
+align-items: center;
+max-width: 1200px;
+margin: 0 auto;
+}
+
+.logo {
+font-size: 1.5rem;
+font-weight: bold;
+color: #fff;
+text-transform: uppercase;
+letter-spacing: 2px;
+}
+
+.nav-links {
+display: flex;
+gap: 2rem;
+list-style: none;
+}
+
+.nav-links a {
+color: #ccc;
+text-decoration: none;
+font-weight: 500;
+transition: color 0.3s;
+}
+
+.nav-links a:hover {
+color: #fff;
+}
+
+/* Main Layout */
+.main-container {
+margin-top: 80px;
+min-height: calc(100vh - 80px);
+display: flex;
+}
+
+.sidebar {
+width: 300px;
+background: rgba(0, 0, 0, 0.8);
+border-right: 1px solid rgba(255, 255, 255, 0.1);
+padding: 2rem;
+backdrop-filter: blur(10px);
+}
+
+.collection-status {
+margin-bottom: 2rem;
+}
+
+.collection-status h3 {
+color: #fff;
+margin-bottom: 1rem;
+font-size: 1.1rem;
+}
+
+.collection-item {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 0.8rem;
+margin-bottom: 0.5rem;
+background: rgba(255, 255, 255, 0.05);
+border-radius: 8px;
+border: 1px solid rgba(255, 255, 255, 0.1);
+transition: all 0.3s;
+cursor: pointer;
+}
+
+.collection-item:hover {
+background: rgba(255, 255, 255, 0.1);
+border-color: #fff;
+}
+
+.status-dot {
+width: 8px;
+height: 8px;
+border-radius: 50%;
+background: #00ff00;
+animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+0% { opacity: 1; }
+50% { opacity: 0.5; }
+100% { opacity: 1; }
+}
+
+.memory-indicator {
+margin-top: 2rem;
+padding: 1rem;
+background: rgba(255, 255, 255, 0.05);
+border: 1px solid rgba(255, 255, 255, 0.1);
+border-radius: 8px;
+}
+
+.memory-indicator h4 {
+color: #fff;
+margin-bottom: 0.5rem;
+}
+
+/* Chat Container */
+.chat-container {
+flex: 1;
+display: flex;
+flex-direction: column;
+max-width: calc(100% - 300px);
+}
+
+.chat-header {
+padding: 2rem;
+text-align: center;
+border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chat-header h1 {
+font-size: 2.5rem;
+color: #fff;
+margin-bottom: 0.5rem;
+font-weight: 300;
+}
+
+.chat-header p {
+color: #999;
+font-size: 1.1rem;
+}
+
+/* Chat Messages */
+.chat-messages {
+flex: 1;
+padding: 2rem;
+overflow-y: auto;
+min-height: 400px;
+max-height: 60vh;
+}
+
+.message {
+margin-bottom: 1.5rem;
+animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.message.user {
+text-align: right;
+}
+
+.message.bot {
+text-align: left;
+}
+
+.message-content {
+display: inline-block;
+max-width: 70%;
+padding: 1rem 1.5rem;
+border-radius: 20px;
+position: relative;
+}
+
+.message.user .message-content {
+background: linear-gradient(135deg, #333, #444);
+color: #fff;
+border-bottom-right-radius: 5px;
+}
+
+.message.bot .message-content {
+background: rgba(255, 255, 255, 0.05);
+border: 1px solid rgba(255, 255, 255, 0.1);
+border-bottom-left-radius: 5px;
+}
+
+.message-meta {
+font-size: 0.8rem;
+color: #888;
+margin-top: 0.5rem;
+}
+
+.retrieval-info {
+margin-top: 1rem;
+padding: 1rem;
+background: rgba(255, 255, 255, 0.05);
+border-left: 3px solid #666;
+border-radius: 0 8px 8px 0;
+font-size: 0.9rem;
+}
+
+.retrieval-info h5 {
+color: #ccc;
+margin-bottom: 0.5rem;
+}
+
+.source-tag {
+display: inline-block;
+padding: 0.2rem 0.5rem;
+background: rgba(255, 255, 255, 0.1);
+color: #fff;
+border-radius: 12px;
+font-size: 0.75rem;
+margin-right: 0.5rem;
+margin-bottom: 0.3rem;
+}
+
+/* Chat Input */
+.chat-input-container {
+padding: 2rem;
+border-top: 1px solid rgba(255, 255, 255, 0.1);
+background: rgba(0, 0, 0, 0.8);
+}
+
+.input-group {
+display: flex;
+gap: 1rem;
+max-width: 800px;
+margin: 0 auto;
+}
+
+.chat-input {
+flex: 1;
+padding: 1rem 1.5rem;
+background: rgba(255, 255, 255, 0.1);
+border: 1px solid rgba(255, 255, 255, 0.2);
+border-radius: 25px;
+color: #fff;
+font-size: 1rem;
+outline: none;
+transition: all 0.3s;
+}
+
+.chat-input:focus {
+border-color: #fff;
+box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.chat-input::placeholder {
+color: #666;
+}
+
+.send-button {
+padding: 1rem 2rem;
+background: linear-gradient(135deg, #333, #555);
+color: #fff;
+border: none;
+border-radius: 25px;
+font-weight: bold;
+cursor: pointer;
+transition: all 0.3s;
+text-transform: uppercase;
+letter-spacing: 1px;
+}
+
+.send-button:hover:not(:disabled) {
+transform: translateY(-2px);
+box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
+background: linear-gradient(135deg, #444, #666);
+}
+
+.send-button:disabled {
+opacity: 0.6;
+cursor: not-allowed;
+}
+
+/* Typing Indicator */
+.typing-indicator {
+padding: 1rem 1.5rem;
+background: rgba(255, 255, 255, 0.1);
+border-radius: 20px;
+border-bottom-left-radius: 5px;
+display: inline-block;
+margin-bottom: 1.5rem;
+}
+
+.typing-dots {
+display: flex;
+gap: 4px;
+}
+
+.typing-dot {
+width: 8px;
+height: 8px;
+background: #666;
+border-radius: 50%;
+animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing {
+0%, 80%, 100% { transform: scale(0); }
+40% { transform: scale(1); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+.main-container {
+    flex-direction: column;
+}
+
+.sidebar {
+    width: 100%;
+    position: relative;
+}
+
+.chat-container {
+    max-width: 100%;
+}
+
+.nav-links {
+    display: none;
+}
+
+.chat-header h1 {
+    font-size: 2rem;
+}
+
+.message-content {
+    max-width: 85%;
+}
+}
+</style>
+</head>
+<body>
+<div class="bg-animation"></div>
+<div class="particles" id="particles"></div>
+
+<header>
+<div class="nav-container">
+<div class="logo">RAG Intelligence</div>
+<nav>
+    <ul class="nav-links">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#collections">Collections</a></li>
+        <li><a href="#memory">Memory</a></li>
+        <li><a href="#settings">Settings</a></li>
+    </ul>
+</nav>
+</div>
+</header>
+
+<div class="main-container">
+<aside class="sidebar">
+<div class="collection-status">
+    <h3>Data Collections</h3>
+    <div class="collection-item" data-collection="wearable">
+        <span>Wearable Data</span>
+        <div class="status-dot"></div>
+    </div>
+    <div class="collection-item" data-collection="chat">
+        <span>Chat History</span>
+        <div class="status-dot"></div>
+    </div>
+    <div class="collection-item" data-collection="profile">
+        <span>User Profile</span>
+        <div class="status-dot"></div>
+    </div>
+    <div class="collection-item" data-collection="location">
+        <span>Location Data</span>
+        <div class="status-dot"></div>
+    </div>
+    <div class="collection-item" data-collection="custom">
+        <span>Research Papers</span>
+        <div class="status-dot"></div>
+    </div>
+</div>
+
+<div class="memory-indicator">
+    <h4>Memory System</h4>
+    <p>Context window: <span id="context-count">0</span> items</p>
+    <p>Session duration: <span id="session-time">0m</span></p>
+</div>
+</aside>
+
+<main class="chat-container">
+<div class="chat-header">
+    <h1>Multi-Collection RAG Assistant</h1>
+    <p>Ask me anything about your data across all collections</p>
+</div>
+
+<div class="chat-messages" id="chat-messages">
+    <div class="message bot">
+        <div class="message-content">
+            Welcome! I'm your **Enhanced RAG Assistant** with AI-powered analysis. I have access to:<br><br>
+            🏃 **Rich Health Data**: Heart rate zones, sleep stages, workout metrics, stress levels<br>
+            📍 **Location History**: Tracked places with visit patterns<br>
+            📚 **Academic Database**: Research papers with full metadata<br>
+            🤖 **AI Analysis**: Intelligent insights and personalized recommendations<br>
+            🧠 **Advanced Memory**: Context-aware conversations<br><br>
+            Ask me to "analyze my health trends" or "recommend improvements for my routine"!
+        </div>
+        <div class="message-meta">System initialized • All collections online</div>
+    </div>
+</div>
+
+<div class="chat-input-container">
+    <div class="input-group">
+        <input 
+            type="text" 
+            class="chat-input" 
+            id="chat-input" 
+            placeholder="Ask me about your data across all collections..."
+            autocomplete="off"
+        >
+        <button class="send-button" id="send-button">Send</button>
+    </div>
+</div>
+</main>
+</div>
+
+<script>
+// Data Collections - Month's Worth of Data
+const COLLECTIONS = {
+wearable: {
+    name: "Wearable Data",
+    data: [
+        // Heart Rate Data - Last 30 days
+        { id: 1, type: "heart_rate", value: 72, timestamp: "2024-05-24T08:00:00Z", activity: "resting", zone: "fat_burn" },
+        { id: 2, type: "heart_rate", value: 145, timestamp: "2024-05-24T18:30:00Z", activity: "workout", zone: "cardio" },
+        { id: 3, type: "heart_rate", value: 165, timestamp: "2024-05-23T19:15:00Z", activity: "intense_workout", zone: "peak" },
+        { id: 4, type: "heart_rate", value: 68, timestamp: "2024-05-22T08:15:00Z", activity: "resting", zone: "fat_burn" },
+        { id: 5, type: "heart_rate", value: 155, timestamp: "2024-05-21T18:45:00Z", activity: "workout", zone: "cardio" },
+        { id: 6, type: "heart_rate", value: 75, timestamp: "2024-05-20T09:00:00Z", activity: "walking", zone: "fat_burn" },
+        { id: 7, type: "heart_rate", value: 148, timestamp: "2024-05-19T19:00:00Z", activity: "workout", zone: "cardio" },
+        { id: 8, type: "heart_rate", value: 70, timestamp: "2024-05-18T08:30:00Z", activity: "resting", zone: "fat_burn" },
+        { id: 9, type: "heart_rate", value: 162, timestamp: "2024-05-17T18:00:00Z", activity: "intense_workout", zone: "peak" },
+        { id: 10, type: "heart_rate", value: 73, timestamp: "2024-05-16T09:15:00Z", activity: "resting", zone: "fat_burn" },
+        
+        // Sleep Data - Last 30 days
+        { id: 11, type: "sleep", value: 7.5, timestamp: "2024-05-24T07:00:00Z", quality: "good", deep_sleep: 2.1, rem_sleep: 1.8, light_sleep: 3.6 },
+        { id: 12, type: "sleep", value: 6.2, timestamp: "2024-05-23T07:00:00Z", quality: "fair", deep_sleep: 1.5, rem_sleep: 1.3, light_sleep: 3.4 },
+        { id: 13, type: "sleep", value: 8.1, timestamp: "2024-05-22T07:00:00Z", quality: "excellent", deep_sleep: 2.7, rem_sleep: 2.1, light_sleep: 3.3 },
+        { id: 14, type: "sleep", value: 7.0, timestamp: "2024-05-21T07:00:00Z", quality: "good", deep_sleep: 2.0, rem_sleep: 1.5, light_sleep: 3.5 },
+        { id: 15, type: "sleep", value: 5.8, timestamp: "2024-05-20T07:00:00Z", quality: "poor", deep_sleep: 1.2, rem_sleep: 1.0, light_sleep: 3.6 },
+        { id: 16, type: "sleep", value: 7.8, timestamp: "2024-05-19T07:00:00Z", quality: "good", deep_sleep: 2.3, rem_sleep: 1.9, light_sleep: 3.6 },
+        { id: 17, type: "sleep", value: 6.5, timestamp: "2024-05-18T07:00:00Z", quality: "fair", deep_sleep: 1.8, rem_sleep: 1.2, light_sleep: 3.5 },
+        { id: 18, type: "sleep", value: 7.2, timestamp: "2024-05-17T07:00:00Z", quality: "good", deep_sleep: 2.1, rem_sleep: 1.6, light_sleep: 3.5 },
+        { id: 19, type: "sleep", value: 8.0, timestamp: "2024-05-16T07:00:00Z", quality: "excellent", deep_sleep: 2.5, rem_sleep: 2.0, light_sleep: 3.5 },
+        { id: 20, type: "sleep", value: 6.8, timestamp: "2024-05-15T07:00:00Z", quality: "fair", deep_sleep: 1.9, rem_sleep: 1.4, light_sleep: 3.5 },
+        
+        // Steps Data - Last 30 days
+        { id: 21, type: "steps", value: 8450, timestamp: "2024-05-24T23:59:59Z", goal: 10000, distance: 6.2, calories: 320 },
+        { id: 22, type: "steps", value: 12350, timestamp: "2024-05-23T23:59:59Z", goal: 10000, distance: 9.1, calories: 485 },
+        { id: 23, type: "steps", value: 15670, timestamp: "2024-05-22T23:59:59Z", goal: 10000, distance: 11.5, calories: 625 },
+        { id: 24, type: "steps", value: 9800, timestamp: "2024-05-21T23:59:59Z", goal: 10000, distance: 7.2, calories: 390 },
+        { id: 25, type: "steps", value: 6890, timestamp: "2024-05-20T23:59:59Z", goal: 10000, distance: 5.1, calories: 275 },
+        { id: 26, type: "steps", value: 11200, timestamp: "2024-05-19T23:59:59Z", goal: 10000, distance: 8.3, calories: 445 },
+        { id: 27, type: "steps", value: 13450, timestamp: "2024-05-18T23:59:59Z", goal: 10000, distance: 9.9, calories: 535 },
+        { id: 28, type: "steps", value: 7650, timestamp: "2024-05-17T23:59:59Z", goal: 10000, distance: 5.6, calories: 305 },
+        { id: 29, type: "steps", value: 14200, timestamp: "2024-05-16T23:59:59Z", goal: 10000, distance: 10.4, calories: 565 },
+        { id: 30, type: "steps", value: 10500, timestamp: "2024-05-15T23:59:59Z", goal: 10000, distance: 7.7, calories: 420 },
+        
+        // Workout Data - Last 30 days
+        { id: 31, type: "workout", duration: 45, exercise_type: "cardio", calories: 320, timestamp: "2024-05-24T19:00:00Z", avg_hr: 145, max_hr: 165 },
+        { id: 32, type: "workout", duration: 60, exercise_type: "strength", calories: 280, timestamp: "2024-05-23T18:30:00Z", avg_hr: 125, max_hr: 155 },
+        { id: 33, type: "workout", duration: 30, exercise_type: "yoga", calories: 150, timestamp: "2024-05-22T07:30:00Z", avg_hr: 95, max_hr: 120 },
+        { id: 34, type: "workout", duration: 50, exercise_type: "cardio", calories: 350, timestamp: "2024-05-21T18:45:00Z", avg_hr: 150, max_hr: 170 },
+        { id: 35, type: "workout", duration: 40, exercise_type: "strength", calories: 240, timestamp: "2024-05-19T19:00:00Z", avg_hr: 120, max_hr: 145 },
+        { id: 36, type: "workout", duration: 35, exercise_type: "yoga", calories: 140, timestamp: "2024-05-18T08:00:00Z", avg_hr: 90, max_hr: 115 },
+        { id: 37, type: "workout", duration: 55, exercise_type: "cardio", calories: 380, timestamp: "2024-05-17T18:00:00Z", avg_hr: 155, max_hr: 175 },
+        { id: 38, type: "workout", duration: 45, exercise_type: "strength", calories: 260, timestamp: "2024-05-16T19:15:00Z", avg_hr: 130, max_hr: 150 },
+        { id: 39, type: "workout", duration: 25, exercise_type: "yoga", calories: 120, timestamp: "2024-05-15T07:45:00Z", avg_hr: 85, max_hr: 110 },
+        { id: 40, type: "workout", duration: 60, exercise_type: "cycling", calories: 420, timestamp: "2024-05-14T17:30:00Z", avg_hr: 140, max_hr: 165 },
+        
+        // Additional Health Metrics
+        { id: 41, type: "stress_level", value: 35, timestamp: "2024-05-24T15:00:00Z", category: "low", triggers: ["work deadline"] },
+        { id: 42, type: "stress_level", value: 55, timestamp: "2024-05-23T16:30:00Z", category: "moderate", triggers: ["meeting presentation"] },
+        { id: 43, type: "stress_level", value: 25, timestamp: "2024-05-22T14:00:00Z", category: "low", triggers: ["relaxed day"] },
+        { id: 44, type: "stress_level", value: 45, timestamp: "2024-05-21T17:00:00Z", category: "moderate", triggers: ["traffic jam"] },
+        { id: 45, type: "stress_level", value: 30, timestamp: "2024-05-20T13:00:00Z", category: "low", triggers: ["weekend"] },
+        
+        { id: 46, type: "weight", value: 75.5, timestamp: "2024-05-24T08:00:00Z", unit: "kg", bmi: 23.2, body_fat: 15.2 },
+        { id: 47, type: "weight", value: 75.8, timestamp: "2024-05-17T08:00:00Z", unit: "kg", bmi: 23.3, body_fat: 15.4 },
+        { id: 48, type: "weight", value: 76.1, timestamp: "2024-05-10T08:00:00Z", unit: "kg", bmi: 23.4, body_fat: 15.6 },
+        
+        { id: 49, type: "blood_pressure", systolic: 118, diastolic: 78, timestamp: "2024-05-24T09:00:00Z", category: "normal", pulse_pressure: 40 },
+        { id: 50, type: "blood_pressure", systolic: 122, diastolic: 80, timestamp: "2024-05-20T09:00:00Z", category: "normal", pulse_pressure: 42 }
+    ]
+},
+chat: {
+    name: "Chat History",
+    data: [
+        { id: 1, user: "How was my sleep last night?", bot: "Your sleep duration was 7.5 hours with good quality, including 2.1 hours of deep sleep.", timestamp: "2024-05-24T10:00:00Z", context: "health_inquiry" },
+        { id: 2, user: "What's my favorite workout type?", bot: "Based on your history, you prefer cardio workouts, with an average duration of 48 minutes.", timestamp: "2024-05-24T11:00:00Z", context: "fitness_preference" },
+        { id: 3, user: "Show me my step count trends", bot: "Your average daily steps are 11,090 with a goal of 10,000. You've exceeded your goal 7 out of 10 days recently!", timestamp: "2024-05-24T12:00:00Z", context: "activity_analysis" },
+        { id: 4, user: "Am I meeting my fitness goals?", bot: "You're doing great! You've exceeded your step goal 70% of the time and maintain a consistent workout schedule of 4-5 times per week.", timestamp: "2024-05-23T14:30:00Z", context: "goal_tracking" },
+        { id: 5, user: "What's my resting heart rate trend?", bot: "Your resting heart rate averages 71 bpm, which is excellent for your age group. It's been very consistent.", timestamp: "2024-05-23T16:00:00Z", context: "health_metrics" },
+        { id: 6, user: "How many calories did I burn yesterday?", bot: "Yesterday you burned 485 calories through 12,350 steps and a 60-minute strength workout.", timestamp: "2024-05-23T20:00:00Z", context: "calorie_tracking" },
+        { id: 7, user: "What time do I usually work out?", bot: "You typically work out in the evening around 6-7 PM, with occasional morning yoga sessions at 7:30 AM.", timestamp: "2024-05-22T13:00:00Z", context: "routine_analysis" },
+        { id: 8, user: "How's my stress management?", bot: "Your stress levels are generally well-managed, averaging 37/100. Work deadlines seem to be your main stress trigger.", timestamp: "2024-05-21T15:00:00Z", context: "wellness_check" }
+    ]
+},
+profile: {
+    name: "User Profile",
+    data: [
+        { field: "name", value: "Alex Chen" },
+        { field: "age", value: 28 },
+        { field: "gender", value: "non-binary" },
+        { field: "height", value: "175 cm" },
+        { field: "weight_goal", value: "maintain current weight" },
+        { field: "fitness_goal", value: "improve cardiovascular health and build strength" },
+        { field: "activity_level", value: "very active" },
+        { field: "preferred_workout_time", value: "evening" },
+        { field: "health_concerns", value: "none currently" },
+        { field: "allergies", value: "seasonal pollen" },
+        { field: "timezone", value: "PST" },
+        { field: "occupation", value: "software engineer" },
+        { field: "stress_management", value: "yoga, meditation, nature walks" },
+        { field: "sleep_goal", value: "7-8 hours" },
+        { field: "step_goal", value: "10000" },
+        { field: "favorite_activities", value: "cycling, yoga, hiking, strength training" },
+        { field: "dietary_preference", value: "vegetarian" },
+        { field: "water_intake_goal", value: "2.5 liters" },
+        { field: "resting_heart_rate", value: "71 bpm" },
+        { field: "max_heart_rate", value: "192 bpm" }
+    ]
+},
+location: {
+    name: "Location Data",
+    data: [
+        { id: 1, place: "Home", address: "123 Tech Street, San Francisco", visits: 150, last_visit: "2024-05-24T08:00:00Z", avg_duration: "12 hours", category: "residence" },
+        { id: 2, place: "PowerFit Gym", address: "456 Fitness Ave, San Francisco", visits: 45, last_visit: "2024-05-24T19:00:00Z", avg_duration: "1.5 hours", category: "fitness" },
+        { id: 3, place: "TechCorp Office", address: "789 Innovation Blvd, San Francisco", visits: 88, last_visit: "2024-05-24T17:00:00Z", avg_duration: "8 hours", category: "work" },
+        { id: 4, place: "Golden Gate Park", address: "Golden Gate Park, San Francisco", visits: 22, last_visit: "2024-05-22T16:00:00Z", avg_duration: "2 hours", category: "recreation" },
+        { id: 5, place: "Whole Foods Market", address: "321 Organic Way, San Francisco", visits: 28, last_visit: "2024-05-23T18:30:00Z", avg_duration: "45 minutes", category: "shopping" },
+        { id: 6, place: "Zen Yoga Studio", address: "555 Mindful Street, San Francisco", visits: 18, last_visit: "2024-05-22T07:30:00Z", avg_duration: "1 hour", category: "fitness" },
+        { id: 7, place: "Bay Trail", address: "Embarcadero, San Francisco", visits: 15, last_visit: "2024-05-21T16:00:00Z", avg_duration: "1.5 hours", category: "recreation" },
+        { id: 8, place: "Blue Bottle Coffee", address: "888 Brew Lane, San Francisco", visits: 35, last_visit: "2024-05-24T09:30:00Z", avg_duration: "30 minutes", category: "cafe" },
+        { id: 9, place: "Marin Headlands", address: "Marin County, CA", visits: 8, last_visit: "2024-05-19T10:00:00Z", avg_duration: "3 hours", category: "hiking" },
+        { id: 10, place: "Crissy Field", address: "San Francisco, CA", visits: 12, last_visit: "2024-05-18T15:00:00Z", avg_duration: "2 hours", category: "recreation" }
+    ]
+},
+custom: {
+    name: "Research Papers & Knowledge Base",
+    data: [
+        { id: 1, title: "Attention Is All You Need", authors: "Vaswani et al.", year: 2017, topic: "transformers", citations: 50000, relevance: "high" },
+        { id: 2, title: "BERT: Pre-training of Deep Bidirectional Transformers", authors: "Devlin et al.", year: 2018, topic: "language_models", citations: 45000, relevance: "high" },
+        { id: 3, title: "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks", authors: "Lewis et al.", year: 2020, topic: "RAG", citations: 3500, relevance: "very_high" },
+        { id: 4, title: "GPT-4 Technical Report", authors: "OpenAI", year: 2023, topic: "large_language_models", citations: 8000, relevance: "high" },
+        { id: 5, title: "Health Data Analytics: A Comprehensive Survey", authors: "Kumar, Patel, Smith et al.", year: 2023, topic: "health_analytics", citations: 420, relevance: "medium" },
+        { id: 6, title: "Constitutional AI: Harmlessness from AI Feedback", authors: "Bai, Kadavath, Kundu et al.", year: 2022, topic: "ai_safety", citations: 850, relevance: "medium" },
+        { id: 7, title: "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models", authors: "Wei, Wang, Schuurmans et al.", year: 2022, topic: "reasoning", citations: 2500, relevance: "high" },
+        { id: 8, title: "Wearable Technology in Healthcare: Current Applications and Future Directions", authors: "Johnson, Lee, Williams", year: 2023, topic: "wearable_tech", citations: 320, relevance: "high" }
+    ]
+}
+};
+
+// Memory Manager
+class MemoryManager {
+constructor(maxSize = 10) {
+    this.interactions = [];
+    this.maxSize = maxSize;
+}
+
+addInteraction(query, response, retrievedData) {
+    this.interactions.push({
+        timestamp: new Date().toISOString(),
+        query: query,
+        response: response,
+        retrievedData: retrievedData || []
+    });
+    if (this.interactions.length > this.maxSize) {
+        this.interactions.shift();
+    }
+}
+
+getRecentContext(count = 3) { 
+    return this.interactions.slice(-count); 
+}
+
+getSize() { 
+    return this.interactions.length; 
+}
+
+clear() { 
+    this.interactions = []; 
+}
+}
+
+// LLM API Service
+class APIService {
+constructor() {
+    this.requestCache = new Map();
+    this.rateLimitDelay = 2000;
+    this.lastRequestTime = 0;
+}
+
+async queryLLM(query, context = '', task = 'textGeneration') {
+    try {
+        const cacheKey = `llm_${task}_${query}_${context.substring(0, 50)}`;
+        if (this.requestCache.has(cacheKey)) {
+            const cached = this.requestCache.get(cacheKey);
+            if (Date.now() - cached.timestamp < 600000) {
+                return cached.data;
+            }
+        }
+
+        // Rate limiting
+        const timeSinceLastRequest = Date.now() - this.lastRequestTime;
+        if (timeSinceLastRequest < this.rateLimitDelay) {
+            await new Promise(resolve => 
+                setTimeout(resolve, this.rateLimitDelay - timeSinceLastRequest)
+            );
+        }
+
+        this.lastRequestTime = Date.now();
+        
+        // Simulate LLM response
+        const response = await this.simulateLLMResponse(query, task, context);
+        
+        this.requestCache.set(cacheKey, {
+            data: response,
+            timestamp: Date.now()
+        });
+
+        return response;
+        
+    } catch (error) {
+        console.error('LLM API error:', error);
+        return this.getFallbackResponse(query, task);
+    }
+}
+
+async simulateLLMResponse(query, task, context) {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const queryLower = query.toLowerCase();
+    
+    if (task === 'questionAnswering') {
+        if (queryLower.includes('health') || queryLower.includes('fitness')) {
+            return {
+                answer: "Based on your health data, I can see patterns in your heart rate, sleep, and activity levels. Your cardiovascular health appears to be in good condition with regular exercise and adequate rest. I recommend maintaining your current routine while focusing on consistency in sleep schedules.",
+                confidence: 0.85
+            };
+        } else if (queryLower.includes('location') || queryLower.includes('travel')) {
+            return {
+                answer: "Your location data shows regular patterns between home, work, and fitness activities. You maintain a good work-life balance with recreational visits to parks. Consider exploring new locations for variety in your routine.",
+                confidence: 0.78
+            };
+        } else if (queryLower.includes('research') || queryLower.includes('papers')) {
+            return {
+                answer: "The research papers in your collection focus on modern AI techniques including transformers, BERT, and retrieval-augmented generation. These represent cutting-edge developments in natural language processing and would be valuable for staying current with AI trends.",
+                confidence: 0.92
+            };
+        }
+    }
+    
+    if (queryLower.includes('recommend') || queryLower.includes('suggest')) {
+        return [{
+            generated_text: "Based on your data patterns, I recommend maintaining your current exercise routine while focusing on consistent sleep schedules. Consider exploring new research in transformer architectures for your academic interests. Your stress levels are well-managed, which is excellent for overall health."
+        }];
+    } else if (queryLower.includes('analyze') || queryLower.includes('insights')) {
+        return [{
+            generated_text: "Your health metrics indicate a well-balanced lifestyle with room for optimization in stress management. Your location patterns suggest efficient time management between work, fitness, and leisure activities. The research papers show intellectual curiosity in cutting-edge AI developments."
+        }];
+    } else if (queryLower.includes('explain') || queryLower.includes('what')) {
+        return [{
+            generated_text: "This appears to be a query about understanding your personal data patterns. Your collected information shows healthy lifestyle choices and intellectual curiosity in AI research topics. Your activity levels and sleep patterns indicate good self-care habits."
+        }];
+    }
+    
+    return [{
+        generated_text: "I can help analyze your health data, location patterns, research interests, and provide personalized insights based on your collected information. What specific aspect would you like me to focus on?"
+    }];
+}
+
+getFallbackResponse(query, task) {
+    return [{
+        generated_text: "I'm here to help analyze your personal data and provide insights about your health, activities, and interests."
+    }];
+}
+
+shouldQueryLLM(query) {
+    // Always return true to use conversational responses
+    return true;
+}
+
+extractContext(retrievedData) {
+    if (!retrievedData || retrievedData.length === 0) return '';
+    
+    let context = "User data context: ";
+    retrievedData.forEach(item => {
+        if (item.collection === 'wearable') {
+            context += `Health: ${item.data.type} = ${item.data.value}. `;
+        } else if (item.collection === 'location') {
+            context += `Location: ${item.data.place} (${item.data.visits} visits). `;
+        } else if (item.collection === 'custom') {
+            context += `Research: "${item.data.title}" by ${item.data.authors}. `;
+        } else if (item.collection === 'profile') {
+            context += `Profile: ${item.data.field} = ${item.data.value}. `;
+        }
+    });
+    
+    return context.trim();
+}
+}
+
+// Similarity Calculator
+class SimilarityCalculator {
+calculateSimilarity(query, document) {
+    const queryTokens = query.toLowerCase().split(/\s+/);
+    const docText = JSON.stringify(document).toLowerCase();
+    
+    // Enhanced similarity - check for partial matches and related terms
+    let score = 0;
+    let totalTokens = queryTokens.length;
+    
+    queryTokens.forEach(token => {
+        if (docText.includes(token)) {
+            score += 1;
+        }
+        // Check for related health terms
+        if (token === 'health' && (docText.includes('heart') || docText.includes('sleep') || docText.includes('stress'))) {
+            score += 0.5;
+        }
+        if (token === 'fitness' && (docText.includes('workout') || docText.includes('exercise') || docText.includes('steps'))) {
+            score += 0.5;
+        }
+        if (token === 'activity' && (docText.includes('steps') || docText.includes('workout') || docText.includes('calories'))) {
+            score += 0.5;
+        }
+    });
+    
+    return Math.min(score / totalTokens, 1.0);
+}
+}
+
+// Retrieval Engine
+class RetrievalEngine {
+constructor(collections) {
+    this.collections = collections;
+    this.similarityCalculator = new SimilarityCalculator();
+    this.apiService = new APIService();
+}
+
+async retrieveRelevantData(query, topK = 3) {
+    const results = [];
+    
+    // Search local collections first
+    Object.entries(this.collections).forEach(([collectionName, collection]) => {
+        collection.data.forEach(item => {
+            const similarity = this.similarityCalculator.calculateSimilarity(query, item);
+            if (similarity > 0.05) { // Lower threshold to catch more data
+                results.push({
+                    collection: collectionName, 
+                    data: item, 
+                    similarity: similarity, 
+                    source: 'local'
+                });
+            }
+        });
+    });
+
+    // Sort by similarity and return more results
+    return results.sort((a, b) => b.similarity - a.similarity).slice(0, topK + 2);
+}
+}
+
+// Response Generator
+class ResponseGenerator {
+constructor(collections) {
+    this.collections = collections;
+    this.apiService = new APIService();
+}
+
+async generateResponse(query, retrievedData) {
+    // Always try to give a conversational response first
+    try {
+        const llmResponse = await this.apiService.queryLLM(query, this.apiService.extractContext(retrievedData), 'textGeneration');
+        let response = "🤖 " + (llmResponse[0]?.generated_text || this.getPersonalizedFallback(query));
+        
+        // Add supporting data if available
+        const localResults = retrievedData.filter(r => r.source === 'local');
+        if (localResults.length > 0) {
+            response += "\n\n📊 **Here's your specific data:**\n";
+            response += this.generateLocalDataSummary(localResults.slice(0, 5));
+        }
+        
+        return response;
+    } catch (error) {
+        // If LLM fails, provide a personalized response based on query
+        return this.getPersonalizedFallback(query);
+    }
+}
+
+getPersonalizedFallback(query) {
+    const queryLower = query.toLowerCase();
+    
+    if (queryLower.includes('hello') || queryLower.includes('hi') || queryLower.includes('hey')) {
+        return "Hey there! I'm your personal health assistant. I've been tracking your fitness journey - you've been doing great with your workouts and maintaining good health habits! What would you like to know about today?";
+    }
+    
+    if (queryLower.includes('health') || queryLower.includes('fitness')) {
+        return "Your health metrics look fantastic! You're averaging 71 bpm resting heart rate, getting about 7.1 hours of sleep nightly, and staying very active with 11,000+ steps per day. Your workout routine is solid with cardio, strength training, and yoga. What aspect of your health would you like to explore?";
+    }
+    
+    if (queryLower.includes('sleep')) {
+        return "Your sleep has been pretty good lately! You're averaging 7.1 hours per night with some excellent 8+ hour nights. Your deep sleep phases are healthy at around 2 hours. I noticed your best sleep comes after yoga sessions. Want some tips for more consistent sleep?";
+    }
+    
+    if (queryLower.includes('workout') || queryLower.includes('exercise')) {
+        return "You've got an awesome workout routine going! I can see cardio sessions 2-3 times per week, strength training, and yoga. Your heart rate during cardio peaks around 165-175 bpm showing you're really pushing yourself. You're burning 240-420 calories per session. How are you feeling after your workouts?";
+    }
+    
+    if (queryLower.includes('stress')) {
+        return "Your stress management is looking good! You're averaging around 37/100 on the stress scale. I notice work deadlines bump it up to 45-55, but your yoga and weekend activities bring it back down. Your stress is lowest after nature visits to Golden Gate Park. How are you feeling stress-wise today?";
+    }
+    
+    if (queryLower.includes('steps') || queryLower.includes('activity')) {
+        return "You're absolutely crushing your daily activity! Averaging over 11,000 steps per day, well above your 10,000 goal. Your most active day was 15,670 steps - that must have been fun! Even your 'low' days are still 6,000-8,000 steps. You're burning 275-625 calories just from walking. Keep it up!";
+    }
+    
+    // Default personalized response
+    return "I'm here as your personal health companion! I've got all your wellness data - from your excellent 71 bpm resting heart rate to your consistent workout routine and good sleep patterns. You're doing really well with your health goals! What would you like to chat about?";
+}
+
+generateLocalDataSummary(localResults) {
+    let summary = "";
+    localResults.forEach((r, index) => {
+        if (r.collection === 'wearable') {
+            summary += `• ${r.data.type}: ${r.data.value}${this.getUnit(r.data.type)}\n`;
+        } else if (r.collection === 'location') {
+            summary += `• Location: ${r.data.place} (${r.data.visits} visits)\n`;
+        } else if (r.collection === 'custom') {
+            summary += `• Research: "${r.data.title}" (${r.data.year})\n`;
+        } else if (r.collection === 'profile') {
+            summary += `• ${r.data.field.replace('_', ' ')}: ${r.data.value}\n`;
+        }
+    });
+    return summary;
+}
+
+getUnit(type) {
+    const units = {
+        'heart_rate': ' bpm',
+        'steps': ' steps',
+        'sleep': ' hours',
+        'stress_level': '/100',
+        'workout': ' min'
+    };
+    return units[type] || '';
+}
+
+generateLocalResponse(query, retrievedData) {
+    const queryLower = query.toLowerCase();
+    
+    // Health queries
+    if (queryLower.includes('heart rate') || queryLower.includes('pulse')) {
+        const hrData = retrievedData.filter(r => r.data.type === 'heart_rate');
+        if (hrData.length > 0) {
+            const avg = hrData.reduce((sum, r) => sum + r.data.value, 0) / hrData.length;
+            const zones = [...new Set(hrData.map(r => r.data.zone))];
+            return `📊 **Heart Rate Analysis:**\n• Average: ${Math.round(avg)} bpm\n• Zones: ${zones.join(', ')}\n• Status: ${avg < 80 ? 'Good' : 'Monitor'}`;
+        }
+    }
+    
+    if (queryLower.includes('sleep')) {
+        const sleepData = retrievedData.filter(r => r.data.type === 'sleep');
+        if (sleepData.length > 0) {
+            const avg = sleepData.reduce((sum, r) => sum + r.data.value, 0) / sleepData.length;
+            const latest = sleepData[0].data;
+            return `😴 **Sleep Analysis:**\n• Latest: ${latest.value} hours (${latest.quality})\n• Average: ${avg.toFixed(1)} hours\n• ${avg >= 7 ? '✅ Good rest!' : '⚠️ Need more sleep'}`;
+        }
+    }
+    
+    if (queryLower.includes('steps') || queryLower.includes('activity')) {
+        const stepsData = retrievedData.filter(r => r.data.type === 'steps');
+        if (stepsData.length > 0) {
+            const avg = stepsData.reduce((sum, r) => sum + r.data.value, 0) / stepsData.length;
+            const goalMet = stepsData.filter(r => r.data.value >= r.data.goal).length;
+            return `🚶 **Activity Summary:**\n• Average daily steps: ${Math.round(avg).toLocaleString()}\n• Goal achievement: ${goalMet}/${stepsData.length} days\n• ${avg >= 10000 ? '🎯 Excellent!' : '💪 Keep going!'}`;
+        }
+    }
+
+    if (queryLower.includes('workout') || queryLower.includes('exercise')) {
+        const workoutData = retrievedData.filter(r => r.data.type === 'workout');
+        if (workoutData.length > 0) {
+            const types = [...new Set(workoutData.map(r => r.data.exercise_type))];
+            const totalCalories = workoutData.reduce((sum, r) => sum + r.data.calories, 0);
+            return `💪 **Workout Analysis:**\n• Total workouts: ${workoutData.length}\n• Types: ${types.join(', ')}\n• Total calories: ${totalCalories}\n• 🔥 Great consistency!`;
+        }
+    }
+
+    if (queryLower.includes('stress') || queryLower.includes('wellness')) {
+        const stressData = retrievedData.filter(r => r.data.type === 'stress_level');
+        if (stressData.length > 0) {
+            const stress = stressData[0].data;
+            return `🧘 **Wellness Check:**\n• Stress level: ${stress.value}/100 (${stress.category})\n• ${stress.value < 40 ? '✅ Well managed!' : '⚠️ Consider relaxation'}`;
+        }
+    }
+
+    // Location queries
+    if (queryLower.includes('location') || queryLower.includes('place') || queryLower.includes('where')) {
+        const locationData = retrievedData.filter(r => r.collection === 'location');
+        if (locationData.length > 0) {
+            let response = `📍 **Location Insights:**\n`;
+            locationData.forEach(l => {
+                response += `• **${l.data.place}** (${l.data.category})\n  - ${l.data.visits} visits\n  - Last visit: ${new Date(l.data.last_visit).toLocaleDateString()}\n`;
+            });
+            return response;
+        }
+    }
+
+    // Research queries
+    if (queryLower.includes('paper') || queryLower.includes('research') || queryLower.includes('study')) {
+        const paperData = retrievedData.filter(r => r.collection === 'custom');
+        if (paperData.length > 0) {
+            let response = `📚 **Research Papers:**\n`;
+            paperData.forEach(p => {
+                response += `\n**${p.data.title}**\n• Authors: ${p.data.authors}\n• Year: ${p.data.year}\n• Citations: ${p.data.citations.toLocaleString()}\n`;
+            });
+            return response;
+        }
+    }
+
+    // Profile queries
+    if (queryLower.includes('profile') || queryLower.includes('about me')) {
+        const profileData = retrievedData.filter(r => r.collection === 'profile');
+        if (profileData.length > 0) {
+            let response = `👤 **Your Profile:**\n`;
+            profileData.forEach(p => {
+                response += `• ${p.data.field.replace('_', ' ')}: ${p.data.value}\n`;
+            });
+            return response;
+        }
+    }
+
+    // Default response
+    let response = "📊 **Data Summary:**\n";
+    const collections = [...new Set(retrievedData.map(r => this.collections[r.collection]?.name || 'AI Analysis'))];
+    response += `Found information from: ${collections.join(", ")}\n\n`;
+    
+    retrievedData.slice(0, 3).forEach((r, index) => {
+        if (r.collection === 'wearable') {
+            response += `${index + 1}. ${r.data.type}: ${r.data.value}\n`;
+        } else if (r.collection === 'custom') {
+            response += `${index + 1}. Paper: "${r.data.title}"\n`;
+        } else if (r.collection === 'location') {
+            response += `${index + 1}. Location: ${r.data.place}\n`;
+        }
+    });
+    
+    return response + "\n💡 Try asking for analysis, recommendations, or insights!";
+}
+}
+
+// Main RAG System
+class RAGSystem {
+constructor(collections) {
+    this.collections = collections;
+    this.memory = new MemoryManager();
+    this.retrieval = new RetrievalEngine(collections);
+    this.responseGenerator = new ResponseGenerator(collections);
+    this.sessionStartTime = Date.now();
+    this.queriesProcessed = 0;
+    
+    console.log('🤖 RAG System initialized successfully');
+}
+
+async processQuery(query) {
+    try {
+        this.queriesProcessed++;
+        
+        const retrievedData = await this.retrieval.retrieveRelevantData(query);
+        const response = await this.responseGenerator.generateResponse(query, retrievedData);
+        
+        this.memory.addInteraction(query, response, retrievedData);
+        this.updateMemoryIndicator();
+        
+        return { query: query, response: response, retrievedData: retrievedData };
+    } catch (error) {
+        console.error('Error processing query:', error);
+        return {
+            query: query,
+            response: 'Sorry, I encountered an error. Please try again.',
+            retrievedData: []
+        };
+    }
+}
+
+updateMemoryIndicator() {
+    const contextCount = document.getElementById('context-count');
+    const sessionTime = document.getElementById('session-time');
+    
+    if (contextCount) {
+        contextCount.textContent = this.memory.getSize();
+    }
+    
+    if (sessionTime) {
+        const minutes = Math.floor((Date.now() - this.sessionStartTime) / 60000);
+        sessionTime.textContent = minutes + 'm';
+    }
+}
+}
+
+// Chat Interface
+class ChatInterface {
+constructor(ragSystem) {
+    this.ragSystem = ragSystem;
+    this.chatMessages = document.getElementById('chat-messages');
+    this.chatInput = document.getElementById('chat-input');
+    this.sendButton = document.getElementById('send-button');
+    
+    this.setupEventListeners();
+    console.log('💬 Chat Interface initialized');
+}
+
+setupEventListeners() {
+    this.sendButton.addEventListener('click', () => this.handleSendMessage());
+    this.chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') this.handleSendMessage();
+    });
+}
+
+async handleSendMessage() {
+    const query = this.chatInput.value.trim();
+    if (!query) return;
+
+    this.setInputState(false);
+    this.addMessage(query, 'user');
+    this.chatInput.value = '';
+
+    this.showTypingIndicator();
+
+    const result = await this.ragSystem.processQuery(query);
+
+    this.hideTypingIndicator();
+    this.addMessage(result.response, 'bot', result.retrievedData);
+    this.setInputState(true);
+}
+
+addMessage(content, sender, retrievedData = null) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+    
+    const formattedContent = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+    
+    let retrievalInfo = '';
+    if (retrievedData && retrievedData.length > 0) {
+        const sources = [...new Set(retrievedData.map(r => {
+            if (r.source === 'llm') return 'AI Analysis';
+            return this.ragSystem.collections[r.collection]?.name;
+        }).filter(Boolean))];
+        
+        if (sources.length > 0) {
+            const sourceTags = sources.map(source => `<span class="source-tag">${source}</span>`).join('');
+            const hasLLM = retrievedData.some(r => r.source === 'llm');
+            retrievalInfo = `
+                <div class="retrieval-info">
+                    <h5>Retrieved from:</h5>
+                    ${sourceTags}
+                    <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #888;">
+                        Found ${retrievedData.length} relevant data points
+                        ${hasLLM ? ' (including AI analysis)' : ''}
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    messageDiv.innerHTML = `
+        <div class="message-content">
+            ${formattedContent}
+            ${retrievalInfo}
+        </div>
+        <div class="message-meta">
+            ${new Date().toLocaleTimeString()} • ${sender === 'user' ? 'You' : 'RAG Assistant'}
+        </div>
+    `;
+
+    this.chatMessages.appendChild(messageDiv);
+    this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+}
+
+showTypingIndicator() {
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'message bot';
+    typingDiv.id = 'typing-indicator';
+    typingDiv.innerHTML = `
+        <div class="typing-indicator">
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+    `;
+    this.chatMessages.appendChild(typingDiv);
+    this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+}
+
+hideTypingIndicator() {
+    const typingIndicator = document.getElementById('typing-indicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+}
+
+setInputState(enabled) {
+    this.chatInput.disabled = !enabled;
+    this.sendButton.disabled = !enabled;
+    this.sendButton.textContent = enabled ? 'Send' : 'Processing...';
+}
+}
+
+// UI Effects
+class UIEffects {
+constructor() {
+    this.createParticles();
+    this.setupCollectionClickHandlers();
+}
+
+createParticles() {
+    const particles = document.getElementById('particles');
+    for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 20 + 's';
+        particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+        particles.appendChild(particle);
+    }
+}
+
+setupCollectionClickHandlers() {
+    document.querySelectorAll('.collection-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const collection = item.dataset.collection;
+            const collectionData = COLLECTIONS[collection];
+            if (collectionData && window.ragApp?.chatInterface) {
+                const message = `📊 ${collectionData.name} Status:\n• ${collectionData.data.length} data points available\n• Collection is active and searchable\n• Last updated: ${new Date().toLocaleString()}`;
+                window.ragApp.chatInterface.addMessage(message, 'bot');
+            }
+        });
+    });
+}
+}
+
+// Main Application
+class RAGApplication {
+constructor() {
+    this.ragSystem = new RAGSystem(COLLECTIONS);
+    this.chatInterface = new ChatInterface(this.ragSystem);
+    this.uiEffects = new UIEffects();
+    
+    this.setupGlobalEventListeners();
+    this.showWelcomeMessage();
+    this.setupDebugTools();
+    
+    console.log('🎉 RAG Application initialized successfully!');
+}
+
+setupGlobalEventListeners() {
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === '/') {
+            e.preventDefault();
+            document.getElementById('chat-input')?.focus();
+        }
+    });
+
+    setInterval(() => {
+        this.ragSystem.updateMemoryIndicator();
+    }, 60000);
+}
+
+showWelcomeMessage() {
+    setTimeout(() => {
+        if (this.ragSystem.memory.getSize() === 0) {
+            const sampleQueries = [
+                "How's my health looking lately?",
+                "Tell me about my workout performance",
+                "How well am I sleeping?",
+                "What's my stress level like?", 
+                "Give me some fitness recommendations",
+                "How are my daily activity levels?",
+                "What patterns do you see in my data?",
+                "How's my overall wellness?"
+            ];
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <strong>🚀 Enhanced RAG System Ready!</strong><br><br>
+                    <strong>Try these AI-powered queries:</strong><br>
+                    ${sampleQueries.map(q => `• "${q}"`).join('<br>')}<br><br>
+                    <strong>Features:</strong><br>
+                    • 🤖 AI-powered analysis and recommendations<br>
+                    • 🏃 Health analytics with 10+ metrics<br>
+                    • 📍 Location tracking and insights<br>
+                    • 📚 Research paper database<br>
+                    • 🧠 Conversation memory system<br>
+                    • 💡 Intelligent insights and suggestions
+                </div>
+                <div class="message-meta">
+                    System ready • Click collections for status • AI analysis enabled
+                </div>
+            `;
+            this.chatInterface.chatMessages.appendChild(messageDiv);
+            this.chatInterface.chatMessages.scrollTop = this.chatInterface.chatMessages.scrollHeight;
+        }
+    }, 3000);
+}
+
+setupDebugTools() {
+    window.ragDebug = {
+        system: this.ragSystem,
+        chat: this.chatInterface,
+        collections: COLLECTIONS,
+        exportData: () => {
+            const data = {
+                collections: COLLECTIONS,
+                memory: this.ragSystem.memory.interactions,
+                timestamp: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'rag_data_export.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            console.log('Data exported!');
+        },
+        clearMemory: () => {
+            this.ragSystem.memory.clear();
+            this.ragSystem.updateMemoryIndicator();
+            console.log('Memory cleared');
+        },
+        testQuery: async (query) => {
+            return await this.ragSystem.processQuery(query);
+        }
+    };
+    console.log('🎯 Debug tools: ragDebug.*');
+}
+}
+
+// Initialize Application
+let ragApp;
+
+document.addEventListener('DOMContentLoaded', () => {
+try {
+    ragApp = new RAGApplication();
+    window.ragApp = ragApp;
+} catch (error) {
+    console.error('Failed to initialize:', error);
+    document.body.innerHTML += `
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                    background: rgba(220, 53, 69, 0.9); color: white; padding: 2rem; 
+                    border-radius: 10px; text-align: center; z-index: 10000;">
+            <h2>⚠️ Initialization Failed</h2>
+            <p>Error: ${error.message}</p>
+            <button onclick="location.reload()" style="margin-top: 1rem; padding: 10px 20px; 
+                    background: white; color: black; border: none; border-radius: 5px; cursor: pointer;">
+                Reload Page
+            </button>
+        </div>
+    `;
+}
+});
+</script>
+</body>
+</html>
